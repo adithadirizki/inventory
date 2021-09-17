@@ -1,0 +1,22 @@
+{
+  "files": {
+    "main.css": "/adithadirizki/inventory/static/css/main.c13d9303.chunk.css",
+    "main.js": "/adithadirizki/inventory/static/js/main.9f6d35f5.chunk.js",
+    "main.js.map": "/adithadirizki/inventory/static/js/main.9f6d35f5.chunk.js.map",
+    "runtime-main.js": "/adithadirizki/inventory/static/js/runtime-main.ae541a1d.js",
+    "runtime-main.js.map": "/adithadirizki/inventory/static/js/runtime-main.ae541a1d.js.map",
+    "static/js/2.3374ac64.chunk.js": "/adithadirizki/inventory/static/js/2.3374ac64.chunk.js",
+    "static/js/2.3374ac64.chunk.js.map": "/adithadirizki/inventory/static/js/2.3374ac64.chunk.js.map",
+    "static/js/3.bb8c61d2.chunk.js": "/adithadirizki/inventory/static/js/3.bb8c61d2.chunk.js",
+    "static/js/3.bb8c61d2.chunk.js.map": "/adithadirizki/inventory/static/js/3.bb8c61d2.chunk.js.map",
+    "index.html": "/adithadirizki/inventory/index.html",
+    "static/css/main.c13d9303.chunk.css.map": "/adithadirizki/inventory/static/css/main.c13d9303.chunk.css.map",
+    "static/js/2.3374ac64.chunk.js.LICENSE.txt": "/adithadirizki/inventory/static/js/2.3374ac64.chunk.js.LICENSE.txt"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.ae541a1d.js",
+    "static/js/2.3374ac64.chunk.js",
+    "static/css/main.c13d9303.chunk.css",
+    "static/js/main.9f6d35f5.chunk.js"
+  ]
+}
