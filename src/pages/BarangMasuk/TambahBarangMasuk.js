@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import Card from "../../components/elements/Card";
 import { useHistory } from "react-router-dom";
 import { Helmet } from "react-helmet";
-import { Button } from "../../components/elements/Button";
 import Alert from "../../components/elements/Alert";
 import Loading from "../../components/elements/Loading";
 
@@ -26,9 +25,8 @@ const TambahBarangMasuk = () => {
   const [showLoading, setShowLoading] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
   const [alert, setAlert] = useState({
-    status: 200,
     message: "",
-    duration: 3000,
+    error: false,
   });
   const history = useHistory();
 
@@ -44,7 +42,7 @@ const TambahBarangMasuk = () => {
       })
       .catch((error) => {
         // Unauthorized
-        if (error.response.status === 401) {
+        if (error.response && error.response.status === 401) {
           localStorage.clear();
           return history.push("/login");
         }
@@ -63,7 +61,7 @@ const TambahBarangMasuk = () => {
       })
       .catch((error) => {
         // Unauthorized
-        if (error.response.status === 401) {
+        if (error.response && error.response.status === 401) {
           localStorage.clear();
           return history.push("/login");
         }
@@ -76,13 +74,7 @@ const TambahBarangMasuk = () => {
     Object.entries(formData).forEach((data) => {
       let [name, value] = data;
 
-      console.log(name, value);
-
-      if (name === "kuantitas") {
-        value = value.replace(/\D/g, "");
-      }
-
-      if (!value) {
+      if (value === undefined || value === "") {
         isError = true;
         setFormDataError((state) => ({ ...state, [name]: "harus diisi" }));
       }
@@ -98,9 +90,13 @@ const TambahBarangMasuk = () => {
     // only number
     if (name === "kuantitas") {
       value = value.replace(/\D/g, "");
+      value = value === "" ? "" : parseInt(value);
     }
 
-    if (value) {
+    if (value === undefined || value === "") {
+      setFormData((state) => ({ ...state, [name]: value }));
+      setFormDataError((state) => ({ ...state, [name]: "harus diisi" }));
+    } else {
       if (name === "kode_barang") {
         const { harga_beli } = dataBarang.find(
           (barang) => barang.kode_barang === value
@@ -114,9 +110,6 @@ const TambahBarangMasuk = () => {
         setFormData((state) => ({ ...state, [name]: value }));
       }
       setFormDataError((state) => ({ ...state, [name]: false }));
-    } else {
-      setFormData((state) => ({ ...state, [name]: value }));
-      setFormDataError((state) => ({ ...state, [name]: "harus diisi" }));
     }
   };
 
@@ -126,6 +119,7 @@ const TambahBarangMasuk = () => {
     if (!formValidation()) {
       return false;
     }
+
     setShowLoading(true);
 
     await api
@@ -135,23 +129,20 @@ const TambahBarangMasuk = () => {
         },
       })
       .then((response) => {
-        setAlert((state) => ({ ...state, ...response.data }));
+        setAlert({ message: response.data.message, error: false });
         setShowAlert(true);
       })
       .catch((error) => {
         // Unauthorized
-        if (error.response.status === 401) {
+        if (error.response && error.response.status === 401) {
           localStorage.clear();
           return history.push("/login");
         }
 
-        setAlert((state) => ({
-          ...state,
-          status: 500,
-          message: "Internal server error!",
-        }));
+        setAlert({ message: "Internal server error!", error: true });
         setShowAlert(true);
       });
+
     setShowLoading(false);
   };
 
@@ -172,23 +163,38 @@ const TambahBarangMasuk = () => {
       </Helmet>
       {showLoading ? (
         <div className="fixed bg-transparent w-full h-full z-30">
-          <div className="fixed top-1/2 left-1/2 transform -translate-y-1/2 -translate-x-1/2">
+          <div
+            className="fixed top-1/2 left-1/2 text-white transform -translate-y-1/2 -translate-x-1/2 rounded-lg px-8 py-3"
+            style={{ backgroundColor: "#00000097" }}>
             <Loading>
-              <div className="font-montserrat mt-2">loading...</div>
+              <div className="font-montserrat text-gray-300 mt-2">
+                Loading...
+              </div>
             </Loading>
           </div>
         </div>
       ) : null}
       <Alert
         show={showAlert}
-        {...alert}
         afterClose={() => {
           setShowAlert(false);
-          if (alert.status === 200) {
-            history.goBack();
+          if (alert.error === false) {
+            return history.goBack();
           }
-        }}
-      />
+        }}>
+        {alert.error ? (
+          <div
+            className={`bg-red-300 font-bold text-sm text-white rounded-lg px-8 py-3`}>
+            {alert.message}
+          </div>
+        ) : (
+          <div
+            className={`bg-green-300 font-bold text-sm text-white rounded-lg px-8 py-3`}>
+            {alert.message}
+          </div>
+        )}
+      </Alert>
+
       <Card className="font-montserrat w-full sm:w-4/5 md:w-3/4 lg:w-2/3 xl:w-1/2 mx-auto">
         <div className="font-montserrat font-bold text-lg text-gray-500 mb-6">
           Tambah Barang Masuk
@@ -200,7 +206,7 @@ const TambahBarangMasuk = () => {
                 Supplier <span className="text-red-400">*</span>
               </div>
               <select
-                className="col-span-full md:col-span-8 border border-gray-300 rounded-md focus:ring focus:ring-indigo-200 focus:outline-none p-2"
+                className="col-span-full md:col-span-8 bg-white border border-gray-300 rounded-md focus:ring focus:ring-indigo-200 focus:outline-none p-2"
                 value={formData.id_supplier}
                 name="id_supplier"
                 onChange={handleChange}>
@@ -218,7 +224,7 @@ const TambahBarangMasuk = () => {
               <div
                 className={`${
                   formDataError.id_supplier ? "" : "hidden"
-                } md:col-start-5 col-span-full text-xs text-red-400`}>
+                } md:col-start-5 col-span-full text-sm text-red-400`}>
                 {`Supplier ${formDataError.id_supplier}`}
               </div>
             </div>
@@ -227,7 +233,7 @@ const TambahBarangMasuk = () => {
                 Barang Masuk <span className="text-red-400">*</span>
               </div>
               <select
-                className="col-span-full md:col-span-8 border border-gray-300 rounded-md focus:ring focus:ring-indigo-200 focus:outline-none p-2"
+                className="col-span-full md:col-span-8 bg-white border border-gray-300 rounded-md focus:ring focus:ring-indigo-200 focus:outline-none p-2"
                 value={formData.kode_barang}
                 name="kode_barang"
                 onChange={handleChange}>
@@ -245,7 +251,7 @@ const TambahBarangMasuk = () => {
               <div
                 className={`${
                   formDataError.kode_barang ? "" : "hidden"
-                } md:col-start-5 col-span-full text-xs text-red-400`}>
+                } md:col-start-5 col-span-full text-sm text-red-400`}>
                 {`Barang ${formDataError.kode_barang}`}
               </div>
             </div>
@@ -264,7 +270,7 @@ const TambahBarangMasuk = () => {
               <div
                 className={`${
                   formDataError.kuantitas ? "" : "hidden"
-                } md:col-start-5 col-span-full text-xs text-red-400`}>
+                } md:col-start-5 col-span-full text-sm text-red-400`}>
                 {`Kuantitas ${formDataError.kuantitas}`}
               </div>
             </div>
@@ -303,9 +309,9 @@ const TambahBarangMasuk = () => {
               </div>
             </div>
           </div>
-          <div className="flex justify-end mt-6">
-            <Button className="text-sm">Simpan</Button>
-          </div>
+          <button className="bg-indigo-500 hover:bg-indigo-400 text-indigo-100 rounded focus:ring focus:ring-indigo-100 focus:outline-none w-full px-4 py-1.5 mt-6">
+            Simpan
+          </button>
         </form>
       </Card>
     </>

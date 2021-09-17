@@ -4,7 +4,6 @@ import Card from "../../components/elements/Card";
 import { useHistory } from "react-router-dom";
 import styled from "styled-components";
 import Modal from "../../components/elements/Modal";
-import { Button, ButtonLight } from "../../components/elements/Button";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
 import { Helmet } from "react-helmet";
@@ -65,10 +64,8 @@ const DataPengguna = () => {
   const [showAlert, setShowAlert] = useState(false);
   const [showLoading, setShowLoading] = useState(false);
   const [alert, setAlert] = useState({
-    status: 200,
     message: "",
     error: false,
-    duration: 3000,
   });
   const [formDataDeletePengguna, setFormDataDeletePengguna] = useState(
     initialStateFormDataDeletePengguna
@@ -76,6 +73,8 @@ const DataPengguna = () => {
   const history = useHistory();
 
   const fetchPengguna = async () => {
+    setShowLoading(true);
+
     await api
       .get("/pengguna", {
         params: {
@@ -119,23 +118,19 @@ const DataPengguna = () => {
       })
       .catch((error) => {
         // Unauthorized
-        if (error.response.status === 401) {
+        if (error.response && error.response.status === 401) {
           localStorage.clear();
           return history.push("/login");
         }
 
-        setAlert({
-          ...alert,
-          status: 500,
-          message: "Internal server error!",
-          error: true,
-        });
+        setAlert({ message: "Internal server error!", error: true });
         setShowAlert(true);
       });
+
+    setShowLoading(false);
   };
 
   const handleSubmitDeletePengguna = async () => {
-    setShowAlert(false);
     setShowLoading(true);
 
     await api
@@ -146,26 +141,22 @@ const DataPengguna = () => {
       })
       .then((response) => {
         fetchPengguna();
-        setAlert({ ...alert, ...response.data });
+        setAlert({ message: response.data.message, error: false });
         setShowAlert(true); // show alert
         setShowModalDeletePengguna(false); // hide modal
         setFormDataDeletePengguna(initialStateFormDataDeletePengguna); // reset form
       })
       .catch((error) => {
         // Unauthorized
-        if (error.response.status === 401) {
+        if (error.response && error.response.status === 401) {
           localStorage.clear();
           return history.push("/login");
         }
 
-        setAlert({
-          ...alert,
-          status: 500,
-          message: "Internal server error!",
-          error: true,
-        });
+        setAlert({ message: "Internal server error!", error: true });
         setShowAlert(true);
       });
+
     setShowLoading(false);
   };
 
@@ -196,18 +187,17 @@ const DataPengguna = () => {
           </td>
           <td className="border">
             <div className="flex items-center justify-center text-xs space-x-1">
-              <ButtonLight
-                variant="pill"
+              <button
+                className="border border-indigo-300 bg-indigo-50 hover:bg-indigo-200 text-indigo-600 rounded-full focus:ring focus:ring-indigo-100 focus:outline-none px-4 py-1.5"
                 onClick={() => {
                   history.push(`/pengguna/${value.username}/edit`);
                 }}>
                 Edit
-              </ButtonLight>
+              </button>
               {value.role === "staff" ||
               value.username !== sessionStorage.getItem("username") ? (
-                <ButtonLight
-                  theme="red"
-                  variant="pill"
+                <button
+                  className="border border-red-300 bg-red-50 hover:bg-red-200 text-red-600 rounded-full focus:ring focus:ring-red-100 focus:outline-none px-4 py-1.5"
                   onClick={() => {
                     setShowModalDeletePengguna(true);
                     setFormDataDeletePengguna({
@@ -216,7 +206,7 @@ const DataPengguna = () => {
                     });
                   }}>
                   Hapus
-                </ButtonLight>
+                </button>
               ) : null}
             </div>
           </td>
@@ -236,25 +226,42 @@ const DataPengguna = () => {
       </Helmet>
       {showLoading ? (
         <div className="fixed bg-transparent w-full h-full z-30">
-          <div className="fixed top-1/2 left-1/2 transform -translate-y-1/2 -translate-x-1/2">
+          <div
+            className="fixed top-1/2 left-1/2 text-white transform -translate-y-1/2 -translate-x-1/2 rounded-lg px-8 py-3"
+            style={{ backgroundColor: "#00000097" }}>
             <Loading>
-              <div className="font-montserrat mt-2">loading...</div>
+              <div className="font-montserrat text-gray-300 mt-2">
+                Loading...
+              </div>
             </Loading>
           </div>
         </div>
       ) : null}
       <Alert
         show={showAlert}
-        {...alert}
-        afterClose={() => setShowAlert(false)}
-      />
+        afterClose={() => {
+          setShowAlert(false);
+        }}>
+        {alert.error ? (
+          <div
+            className={`bg-red-300 font-bold text-sm text-white rounded-lg px-8 py-3`}>
+            {alert.message}
+          </div>
+        ) : (
+          <div
+            className={`bg-green-300 font-bold text-sm text-white rounded-lg px-8 py-3`}>
+            {alert.message}
+          </div>
+        )}
+      </Alert>
+
       <Modal
         show={showModalDeletePengguna}
         afterClose={() => setShowModalDeletePengguna(false)}>
         <Card className="font-montserrat">
           <div className="flex items-start justify-between mb-4">
             <div className="font-bold text-gray-500 text-lg border-b pb-2">
-              Hapus Transaksi Pengguna
+              Hapus Pengguna
             </div>
             <button
               onClick={() => {
@@ -272,43 +279,43 @@ const DataPengguna = () => {
             ?
           </div>
           <div className="flex justify-between text-sm space-x-2 mt-8">
-            <Button
-              theme="red"
+            <button
+              className="bg-red-500 hover:bg-red-400 text-red-100 rounded focus:ring focus:ring-red-100 focus:outline-none px-4 py-1.5"
               onClick={() => {
                 setShowModalDeletePengguna(false);
               }}>
               Batal
-            </Button>
-            <Button theme="green" onClick={handleSubmitDeletePengguna}>
+            </button>
+            <button
+              className="bg-green-500 hover:bg-green-400 text-green-100 rounded focus:ring focus:ring-green-100 focus:outline-none px-4 py-1.5"
+              onClick={handleSubmitDeletePengguna}>
               Ya
-            </Button>
+            </button>
           </div>
         </Card>
       </Modal>
 
-      <Card>
-        <div className="font-montserrat font-bold text-gray-500 text-xl mb-6">
+      <Card className="font-montserrat">
+        <div className="font-bold text-gray-500 text-xl mb-6">
           Data Pengguna
         </div>
-        <Button
-          className="mb-4"
+        <button
+          className="bg-indigo-500 hover:bg-indigo-400 text-indigo-100 rounded focus:ring focus:ring-indigo-100 focus:outline-none px-4 py-1.5 mr-2 mb-4"
           onClick={() => {
             history.push("/pengguna/tambah");
           }}>
           Tambah Pengguna
-        </Button>
+        </button>
 
-        <ButtonLight className="text-sm ml-4">
-          <FontAwesomeIcon icon={faFileAlt} />
-          <CSVLink
-            className="ml-2"
-            headers={headersCSV}
-            data={dataCSV}
-            filename="Data_Pengguna_INVENTORY.csv"
-            target="_blank">
-            Export
-          </CSVLink>
-        </ButtonLight>
+        <CSVLink
+          className="border border-indigo-300 bg-indigo-50 hover:bg-indigo-200 text-indigo-600 rounded focus:ring focus:ring-indigo-100 focus:outline-none px-4 py-1.5 ml-2"
+          headers={headersCSV}
+          data={dataCSV}
+          filename="Data_Pengguna_INVENTORY.csv"
+          target="_blank">
+          <FontAwesomeIcon icon={faFileAlt} className="mr-2" />
+          Export
+        </CSVLink>
 
         <Datatable
           page={dataTable.page}

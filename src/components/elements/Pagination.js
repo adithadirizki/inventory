@@ -5,7 +5,6 @@ import {
   faAngleRight,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Button, ButtonOutline } from "./Button";
 
 const Pagination = ({
   page = 0,
@@ -38,7 +37,7 @@ const Pagination = ({
       if (totalRowsFiltered === totalRows) {
         return `${start + 1} - ${start + left} dari ${totalRowsFiltered} data`;
       }
-      
+
       return `${start + 1} - ${
         start + left
       } dari ${totalRowsFiltered} data (total ${totalRows} data)`;
@@ -51,7 +50,7 @@ const Pagination = ({
         if (totalRows === 0) {
           return `${0} - ${0} dari ${totalRowsFiltered} data`;
         }
-        
+
         return `${start + 1} - ${
           start + rowsPerPage
         } dari ${totalRowsFiltered} data`;
@@ -73,43 +72,52 @@ const Pagination = ({
         </div>
 
         <div className="col-span-full md:col-span-8 flex justify-center md:justify-end space-x-1">
-          <ButtonOutline
+          <button
+            className="border border-indigo-300 hover:bg-indigo-50 text-indigo-600 rounded disabled:opacity-50 disabled:cursor-default focus:ring focus:ring-indigo-100 focus:outline-none px-4 py-1.5"
             onClick={() => pageOnChange(1)}
             disabled={page <= 1 ? true : false}>
             <FontAwesomeIcon icon={faAngleDoubleLeft} />
-          </ButtonOutline>
-          <ButtonOutline
+          </button>
+          <button
+            className="border border-indigo-300 hover:bg-indigo-50 text-indigo-600 rounded disabled:opacity-50 disabled:cursor-default focus:ring focus:ring-indigo-100 focus:outline-none px-4 py-1.5"
             onClick={() => pageOnChange(page - 1)}
             disabled={page <= 1 ? true : false}>
             <FontAwesomeIcon icon={faAngleLeft} />
-          </ButtonOutline>
+          </button>
           {slice().map((value, index) => {
+            // active page
             if (page === value + 1) {
               return (
-                <Button key={value} onClick={() => pageOnChange(value + 1)}>
+                <button
+                  key={value}
+                  className="bg-indigo-500 hover:bg-indigo-400 text-indigo-100 rounded focus:ring focus:ring-indigo-100 focus:outline-none px-4 py-1.5"
+                  onClick={() => pageOnChange(value + 1)}>
                   {value + 1}
-                </Button>
+                </button>
               );
             } else {
               return (
-                <ButtonOutline
+                <button
                   key={value}
+                  className="border border-indigo-300 bg-indigo-50 hover:bg-indigo-200 text-indigo-600 rounded focus:ring focus:ring-indigo-100 focus:outline-none px-4 py-1.5"
                   onClick={() => pageOnChange(value + 1)}>
                   {value + 1}
-                </ButtonOutline>
+                </button>
               );
             }
           })}
-          <ButtonOutline
+          <button
+            className="border border-indigo-300 hover:bg-indigo-50 text-indigo-600 rounded disabled:opacity-50 disabled:cursor-default focus:ring focus:ring-indigo-100 focus:outline-none px-4 py-1.5"
             onClick={() => pageOnChange(page + 1)}
             disabled={page >= totalPagesFiltered ? true : false}>
             <FontAwesomeIcon icon={faAngleRight} />
-          </ButtonOutline>
-          <ButtonOutline
+          </button>
+          <button
+            className="border border-indigo-300 hover:bg-indigo-50 text-indigo-600 rounded disabled:opacity-50 disabled:cursor-default focus:ring focus:ring-indigo-100 focus:outline-none px-4 py-1.5"
             onClick={() => pageOnChange(totalPagesFiltered)}
-            disabled={page === totalPagesFiltered ? true : false}>
+            disabled={page >= totalPagesFiltered ? true : false}>
             <FontAwesomeIcon icon={faAngleDoubleRight} />
-          </ButtonOutline>
+          </button>
         </div>
       </div>
     </>

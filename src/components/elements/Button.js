@@ -1,84 +1,23 @@
-export const Button = ({
-  children,
-  className = "",
-  theme = "indigo",
-  variant = "flat",
-  ...props
-}) => {
-  theme = `bg-${theme}-500 hover:bg-${theme}-400 text-${theme}-100 disabled:opacity-50 focus:ring focus:ring-${theme}-100`;
-  switch (variant) {
-    case "flat":
-      variant = "rounded";
-      break;
-    case "pill":
-      variant = "rounded-full";
-      break;
-    default:
-      variant = "rounded";
-      break;
-  }
-
+export const Button = () => {
   return (
-    <button
-      className={`${className} ${theme} ${variant} focus:outline-none px-4 py-1.5`}
-      {...props}>
-      {children}
+    <button className="bg-indigo-500 hover:bg-indigo-400 text-indigo-100 rounded focus:ring focus:ring-indigo-100 focus:outline-none px-4 py-1.5">
+      Filled
     </button>
   );
 };
 
-export const ButtonLight = ({
-  children,
-  className = "",
-  theme = "indigo",
-  variant = "flat",
-  ...props
-}) => {
-  theme = `border border-${theme}-300 bg-${theme}-50 hover:bg-${theme}-200 text-${theme}-600 disabled:opacity-50 focus:ring focus:ring-${theme}-100`;
-  switch (variant) {
-    case "flat":
-      variant = "rounded";
-      break;
-    case "pill":
-      variant = "rounded-full";
-      break;
-    default:
-      variant = "rounded";
-      break;
-  }
+export const ButtonLight = () => {
   return (
-    <button
-      className={`${className} ${theme} ${variant} focus:outline-none px-4 py-1.5`}
-      {...props}>
-      {children}
+    <button className="border border-indigo-300 bg-indigo-50 hover:bg-indigo-200 text-indigo-600 rounded-full focus:ring focus:ring-indigo-100 focus:outline-none px-4 py-1.5">
+      Light
     </button>
   );
 };
 
-export const ButtonOutline = ({
-  children,
-  className = "",
-  theme = "indigo",
-  variant = "flat",
-  ...props
-}) => {
-  theme = `border border-${theme}-300 hover:bg-${theme}-50 text-${theme}-600 disabled:opacity-50 disabled:cursor-default focus:ring focus:ring-${theme}-100`;
-  switch (variant) {
-    case "flat":
-      variant = "rounded";
-      break;
-    case "pill":
-      variant = "rounded-full";
-      break;
-    default:
-      variant = "rounded";
-      break;
-  }
+export const ButtonOutline = () => {
   return (
-    <button
-      className={`${className} ${theme} ${variant} focus:outline-none px-4 py-1.5`}
-      {...props}>
-      {children}
+    <button className="border border-indigo-300 hover:bg-indigo-50 text-indigo-600 rounded disabled:opacity-50 disabled:cursor-default focus:ring focus:ring-indigo-100 focus:outline-none px-4 py-1.5">
+      Outline
     </button>
   );
 };

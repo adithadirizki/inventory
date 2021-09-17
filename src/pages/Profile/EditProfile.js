@@ -1,4 +1,4 @@
-import api from "../../config/api";
+import api, { ENDPOINT } from "../../config/api";
 import { useEffect, useState } from "react";
 import { useHistory } from "react-router-dom";
 import { Helmet } from "react-helmet";
@@ -16,6 +16,7 @@ const EditProfile = () => {
     no_telp: "",
   });
   const [formDataError, setFormDataError] = useState({
+    foto: false,
     nama: false,
     email: false,
     no_telp: false,
@@ -29,13 +30,14 @@ const EditProfile = () => {
   const [showLoading, setShowLoading] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
   const [alert, setAlert] = useState({
-    status: 200,
     message: "",
-    duration: 3000,
+    error: false,
   });
   const history = useHistory();
 
   const fetchPengguna = async () => {
+    setShowLoading(true);
+
     await api
       .get(`/pengguna/info`, {
         headers: {
@@ -44,16 +46,19 @@ const EditProfile = () => {
       })
       .then((response) => {
         setFormData(response.data.data);
+        localStorage.setItem("foto", response.data.data.foto);
+        localStorage.setItem("role", response.data.data.role);
+        localStorage.setItem("nama", response.data.data.nama);
       })
       .catch((error) => {
         // Unauthorized
-        if (error.response.status === 401) {
+        if (error.response && error.response.status === 401) {
           localStorage.clear();
           return history.push("/login");
         }
-
-        console.log(error);
       });
+
+    setShowLoading(false);
   };
 
   const formValidation = () => {
@@ -64,10 +69,6 @@ const EditProfile = () => {
 
       if (name === "foto") {
         return false;
-      }
-
-      if (name === "no_telp") {
-        value = value.replace(/\D/g, "");
       }
 
       if (value === undefined || value === "") {
@@ -98,10 +99,10 @@ const EditProfile = () => {
         setFormDataError((state) => ({ ...state, [name]: false }));
       }
     } else {
-      if (value) {
-        setFormDataError((state) => ({ ...state, [name]: false }));
-      } else {
+      if (value === undefined || value === "") {
         setFormDataError((state) => ({ ...state, [name]: "harus diisi" }));
+      } else {
+        setFormDataError((state) => ({ ...state, [name]: false }));
       }
     }
   };
@@ -109,17 +110,30 @@ const EditProfile = () => {
   const handleChangeFile = (e) => {
     const file = e.target.files[0];
 
+    if (!file) {
+      setFormDataError((state) => ({ ...state, foto: false }));
+      setSelectedFile(null);
+      return false;
+    }
+
     if (file.size / 1000000 > 2) {
+      setFormDataError((state) => ({
+        ...state,
+        foto: "Ukuran file tidak boleh lebih dari 2MB",
+      }));
+      e.target.value = null;
       setSelectedFile(null);
-    }
-    if (
-      file.type !== "image/jpeg" ||
-      file.type !== "image/jpg" ||
-      file.type !== "image/png"
-    ) {
+    } else if (!["image/jpeg", "image/jpg", "image/png"].includes(file.type)) {
+      setFormDataError((state) => ({
+        ...state,
+        foto: "Format file tidak valid",
+      }));
+      e.target.value = null;
       setSelectedFile(null);
+    } else {
+      setFormDataError((state) => ({ ...state, foto: false }));
+      setSelectedFile(file);
     }
-    setSelectedFile(file);
   };
 
   const uploadFile = () => {
@@ -141,7 +155,7 @@ const EditProfile = () => {
       })
       .catch((error) => {
         // Unauthorized
-        if (error.response.status === 401) {
+        if (error.response && error.response.status === 401) {
           localStorage.clear();
           return history.push("/login");
         }
@@ -168,6 +182,7 @@ const EditProfile = () => {
     if (!formValidation()) {
       return false;
     }
+
     setShowLoading(true);
 
     await api
@@ -181,23 +196,20 @@ const EditProfile = () => {
         }
       )
       .then((response) => {
-        setAlert((state) => ({ ...state, ...response.data }));
+        setAlert({ message: response.data.message, error: false });
         setShowAlert(true);
       })
       .catch((error) => {
         // Unauthorized
-        if (error.response.status === 401) {
+        if (error.response && error.response.status === 401) {
           localStorage.clear();
           return history.push("/login");
         }
 
-        setAlert((state) => ({
-          ...state,
-          status: 500,
-          message: "Internal server error!",
-        }));
+        setAlert({ message: "Internal server error!", error: true });
         setShowAlert(true);
       });
+
     setShowLoading(false);
   };
 
@@ -211,6 +223,7 @@ const EditProfile = () => {
       });
       return false;
     }
+
     setShowLoading(true);
 
     await api
@@ -220,23 +233,20 @@ const EditProfile = () => {
         },
       })
       .then((response) => {
-        setAlert((state) => ({ ...state, ...response.data }));
+        setAlert({ message: response.data.message, error: false });
         setShowAlert(true);
       })
       .catch((error) => {
         // Unauthorized
-        if (error.response.status === 401) {
+        if (error.response && error.response.status === 401) {
           localStorage.clear();
           return history.push("/login");
         }
 
-        setAlert((state) => ({
-          ...state,
-          status: 500,
-          message: "Internal server error!",
-        }));
+        setAlert({ message: "Internal server error!", error: true });
         setShowAlert(true);
       });
+
     setShowLoading(false);
   };
 
@@ -245,6 +255,7 @@ const EditProfile = () => {
       top: 0,
       behavior: "smooth",
     });
+
     fetchPengguna();
   }, []);
 
@@ -255,32 +266,47 @@ const EditProfile = () => {
       </Helmet>
       {showLoading ? (
         <div className="fixed bg-transparent w-full h-full z-30">
-          <div className="fixed top-1/2 left-1/2 transform -translate-y-1/2 -translate-x-1/2">
+          <div
+            className="fixed top-1/2 left-1/2 text-white transform -translate-y-1/2 -translate-x-1/2 rounded-lg px-8 py-3"
+            style={{ backgroundColor: "#00000097" }}>
             <Loading>
-              <div className="font-montserrat mt-2">loading...</div>
+              <div className="font-montserrat text-gray-300 mt-2">
+                Loading...
+              </div>
             </Loading>
           </div>
         </div>
       ) : null}
       <Alert
         show={showAlert}
-        {...alert}
         afterClose={() => {
           setShowAlert(false);
-          if (alert.status === 200) {
-            history.goBack();
+          if (alert.error === false) {
+            return history.goBack();
           }
-        }}
-      />
-      <div className="grid grid-cols-12 gap-x-4 items-start">
+        }}>
+        {alert.error ? (
+          <div
+            className={`bg-red-300 font-bold text-sm text-white rounded-lg px-8 py-3`}>
+            {alert.message}
+          </div>
+        ) : (
+          <div
+            className={`bg-green-300 font-bold text-sm text-white rounded-lg px-8 py-3`}>
+            {alert.message}
+          </div>
+        )}
+      </Alert>
+
+      <div className="grid grid-cols-12 gap-4 items-start">
         <Card className="font-montserrat col-span-full md:col-span-6">
           <div className="font-montserrat font-bold text-lg text-gray-500 mb-6">
             Edit Profile
           </div>
           <form onSubmit={handleSubmit}>
-            <div className="flex flex-col justify-center text-sm space-y-4">
+            <div className="flex flex-col justify-center space-y-4">
               <img
-                src={`/img/${formData.foto}`}
+                src={`${ENDPOINT}/img/${formData.foto}`}
                 alt="User Profile"
                 className="ring-2 ring-offset-4 ring-indigo-400 shadow-lg rounded-full w-20 mx-auto"
               />
@@ -289,8 +315,15 @@ const EditProfile = () => {
                 <input
                   type="file"
                   className="col-span-full md:col-span-8 border border-gray-300 rounded-md focus:ring focus:ring-indigo-200 focus:outline-none p-2"
+                  accept="image/jpeg,image/png"
                   onChange={handleChangeFile}
                 />
+                <div
+                  className={`${
+                    formDataError.foto ? "" : "hidden"
+                  } md:col-start-5 col-span-full text-sm text-red-400`}>
+                  {formDataError.foto}
+                </div>
               </div>
               <div className="grid grid-cols-12 items-center gap-x-4 gap-y-1">
                 <div className="col-span-full md:col-span-4">
@@ -319,7 +352,7 @@ const EditProfile = () => {
                 <div
                   className={`${
                     formDataError.nama ? "" : "hidden"
-                  } md:col-start-5 col-span-full text-xs text-red-400`}>
+                  } md:col-start-5 col-span-full text-sm text-red-400`}>
                   {`Nama pengguna ${formDataError.nama}`}
                 </div>
               </div>
@@ -338,7 +371,7 @@ const EditProfile = () => {
                 <div
                   className={`${
                     formDataError.email ? "" : "hidden"
-                  } md:col-start-5 col-span-full text-xs text-red-400`}>
+                  } md:col-start-5 col-span-full text-sm text-red-400`}>
                   {`Email ${formDataError.email}`}
                 </div>
               </div>
@@ -357,14 +390,14 @@ const EditProfile = () => {
                 <div
                   className={`${
                     formDataError.no_telp ? "" : "hidden"
-                  } md:col-start-5 col-span-full text-xs text-red-400`}>
+                  } md:col-start-5 col-span-full text-sm text-red-400`}>
                   {`No telp ${formDataError.no_telp}`}
                 </div>
               </div>
             </div>
-            <div className="flex justify-end mt-6">
-              <Button className="text-sm">Simpan</Button>
-            </div>
+            <button className="bg-indigo-500 hover:bg-indigo-400 text-indigo-100 rounded focus:ring focus:ring-indigo-100 focus:outline-none w-full px-4 py-1.5 mt-6">
+              Simpan
+            </button>
           </form>
         </Card>
         <Card className="font-montserrat col-span-full md:col-span-6">
@@ -372,7 +405,7 @@ const EditProfile = () => {
             Ubah Password
           </div>
           <form onSubmit={handleSubmitUbahPassword}>
-            <div className="flex flex-col justify-center text-sm space-y-4">
+            <div className="flex flex-col justify-center space-y-4">
               <div className="grid grid-cols-12 items-center gap-x-4 gap-y-1">
                 <div className="col-span-full md:col-span-4">
                   Password Baru <span className="text-red-400">*</span>
@@ -400,14 +433,14 @@ const EditProfile = () => {
                 <div
                   className={`${
                     formDataUbahPasswordError.password ? "" : "hidden"
-                  } md:col-start-5 col-span-full text-xs text-red-400`}>
+                  } md:col-start-5 col-span-full text-sm text-red-400`}>
                   {`Password baru ${formDataUbahPasswordError.password}`}
                 </div>
               </div>
             </div>
-            <div className="flex justify-end mt-6">
-              <Button className="text-sm">Simpan</Button>
-            </div>
+            <button className="bg-indigo-500 hover:bg-indigo-400 text-indigo-100 rounded focus:ring focus:ring-indigo-100 focus:outline-none w-full px-4 py-1.5 mt-6">
+              Simpan
+            </button>
           </form>
         </Card>
       </div>

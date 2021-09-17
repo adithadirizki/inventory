@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import Card from "../../components/elements/Card";
 import { useHistory } from "react-router-dom";
 import { Helmet } from "react-helmet";
-import { Button } from "../../components/elements/Button";
 import Alert from "../../components/elements/Alert";
 import Loading from "../../components/elements/Loading";
 
@@ -30,9 +29,8 @@ const TambahPengguna = () => {
   const [showLoading, setShowLoading] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
   const [alert, setAlert] = useState({
-    status: 200,
     message: "",
-    duration: 3000,
+    error: false,
   });
   const history = useHistory();
 
@@ -169,7 +167,7 @@ const TambahPengguna = () => {
       })
       .catch((error) => {
         // Unauthorized
-        if (error.response.status === 401) {
+        if (error.response && error.response.status === 401) {
           localStorage.clear();
           return history.push("/login");
         }
@@ -193,6 +191,7 @@ const TambahPengguna = () => {
     if (!formValidation()) {
       return false;
     }
+
     setShowLoading(true);
 
     await api
@@ -206,23 +205,25 @@ const TambahPengguna = () => {
         }
       )
       .then((response) => {
-        setAlert((state) => ({ ...state, ...response.data }));
+        setAlert({ message: response.data.message, error: false });
         setShowAlert(true);
       })
       .catch((error) => {
         // Unauthorized
-        if (error.response.status === 401) {
+        if (error.response && error.response.status === 401) {
           localStorage.clear();
           return history.push("/login");
         }
 
-        setAlert((state) => ({
-          ...state,
-          status: 500,
-          message: "Internal server error!",
-        }));
+        if (error.response.data) {
+          setAlert({ message: error.response.data.message, error: true });
+        } else {
+          setAlert({ message: "Internal server error!", error: true });
+        }
+
         setShowAlert(true);
       });
+
     setShowLoading(false);
   };
 
@@ -235,32 +236,49 @@ const TambahPengguna = () => {
 
   return (
     <>
-      <Helmet><title>Tambah Pengguna | INVENTORY</title></Helmet>
+      <Helmet>
+        <title>Tambah Pengguna | INVENTORY</title>
+      </Helmet>
       {showLoading ? (
         <div className="fixed bg-transparent w-full h-full z-30">
-          <div className="fixed top-1/2 left-1/2 transform -translate-y-1/2 -translate-x-1/2">
+          <div
+            className="fixed top-1/2 left-1/2 text-white transform -translate-y-1/2 -translate-x-1/2 rounded-lg px-8 py-3"
+            style={{ backgroundColor: "#00000097" }}>
             <Loading>
-              <div className="font-montserrat mt-2">loading...</div>
+              <div className="font-montserrat text-gray-300 mt-2">
+                Loading...
+              </div>
             </Loading>
           </div>
         </div>
       ) : null}
       <Alert
         show={showAlert}
-        {...alert}
         afterClose={() => {
           setShowAlert(false);
-          if (alert.status === 200) {
+          if (alert.error === false) {
             history.goBack();
           }
-        }}
-      />
+        }}>
+        {alert.error ? (
+          <div
+            className={`bg-red-300 font-bold text-sm text-white rounded-lg px-8 py-3`}>
+            {alert.message}
+          </div>
+        ) : (
+          <div
+            className={`bg-green-300 font-bold text-sm text-white rounded-lg px-8 py-3`}>
+            {alert.message}
+          </div>
+        )}
+      </Alert>
+
       <Card className="font-montserrat w-full sm:w-4/5 md:w-3/4 lg:w-2/3 xl:w-1/2 mx-auto">
         <div className="font-montserrat font-bold text-lg text-gray-500 mb-6">
           Tambah Pengguna
         </div>
         <form onSubmit={handleSubmit}>
-          <div className="flex flex-col justify-center text-sm space-y-4">
+          <div className="flex flex-col justify-center space-y-4">
             <div className="grid grid-cols-12 items-center gap-x-4 gap-y-1">
               <div className="col-span-full md:col-span-4">Foto</div>
               <input
@@ -284,7 +302,7 @@ const TambahPengguna = () => {
               <div
                 className={`${
                   formDataError.username ? "" : "hidden"
-                } md:col-start-5 col-span-full text-xs text-red-400`}>
+                } md:col-start-5 col-span-full text-sm text-red-400`}>
                 {`Username ${formDataError.username}`}
               </div>
             </div>
@@ -303,7 +321,7 @@ const TambahPengguna = () => {
               <div
                 className={`${
                   formDataError.nama ? "" : "hidden"
-                } md:col-start-5 col-span-full text-xs text-red-400`}>
+                } md:col-start-5 col-span-full text-sm text-red-400`}>
                 {`Nama pengguna ${formDataError.nama}`}
               </div>
             </div>
@@ -322,7 +340,7 @@ const TambahPengguna = () => {
               <div
                 className={`${
                   formDataError.email ? "" : "hidden"
-                } md:col-start-5 col-span-full text-xs text-red-400`}>
+                } md:col-start-5 col-span-full text-sm text-red-400`}>
                 {`Email ${formDataError.email}`}
               </div>
             </div>
@@ -341,7 +359,7 @@ const TambahPengguna = () => {
               <div
                 className={`${
                   formDataError.password ? "" : "hidden"
-                } md:col-start-5 col-span-full text-xs text-red-400`}>
+                } md:col-start-5 col-span-full text-sm text-red-400`}>
                 {`Password ${formDataError.password}`}
               </div>
             </div>
@@ -360,7 +378,7 @@ const TambahPengguna = () => {
               <div
                 className={`${
                   formDataError.no_telp ? "" : "hidden"
-                } md:col-start-5 col-span-full text-xs text-red-400`}>
+                } md:col-start-5 col-span-full text-sm text-red-400`}>
                 {`No telp ${formDataError.no_telp}`}
               </div>
             </div>
@@ -369,7 +387,7 @@ const TambahPengguna = () => {
                 Role <span className="text-red-400">*</span>
               </div>
               <select
-                className="col-span-full md:col-span-8 border border-gray-300 rounded-md focus:ring focus:ring-indigo-200 focus:outline-none p-2"
+                className="col-span-full md:col-span-8 bg-white border border-gray-300 rounded-md focus:ring focus:ring-indigo-200 focus:outline-none p-2"
                 value={formData.role}
                 name="role"
                 onChange={handleChange}>
@@ -382,7 +400,7 @@ const TambahPengguna = () => {
               <div
                 className={`${
                   formDataError.role ? "" : "hidden"
-                } md:col-start-5 col-span-full text-xs text-red-400`}>
+                } md:col-start-5 col-span-full text-sm text-red-400`}>
                 {`Role ${formDataError.role}`}
               </div>
             </div>
@@ -391,7 +409,7 @@ const TambahPengguna = () => {
                 Status <span className="text-red-400">*</span>
               </div>
               <select
-                className="col-span-full md:col-span-8 border border-gray-300 rounded-md focus:ring focus:ring-indigo-200 focus:outline-none p-2"
+                className="col-span-full md:col-span-8 bg-white border border-gray-300 rounded-md focus:ring focus:ring-indigo-200 focus:outline-none p-2"
                 value={formData.status}
                 name="status"
                 onChange={handleChange}>
@@ -404,14 +422,14 @@ const TambahPengguna = () => {
               <div
                 className={`${
                   formDataError.status ? "" : "hidden"
-                } md:col-start-5 col-span-full text-xs text-red-400`}>
+                } md:col-start-5 col-span-full text-sm text-red-400`}>
                 {`Status ${formDataError.status}`}
               </div>
             </div>
           </div>
-          <div className="flex justify-end mt-6">
-            <Button className="text-sm">Simpan</Button>
-          </div>
+          <button className="bg-indigo-500 hover:bg-indigo-400 text-indigo-100 rounded focus:ring focus:ring-indigo-100 focus:outline-none w-full px-4 py-1.5 mt-6">
+            Simpan
+          </button>
         </form>
       </Card>
     </>

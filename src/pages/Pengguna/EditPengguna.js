@@ -1,9 +1,8 @@
-import api from "../../config/api";
+import api, { ENDPOINT } from "../../config/api";
 import { useEffect, useState } from "react";
 import Card from "../../components/elements/Card";
 import { useHistory } from "react-router-dom";
 import { Helmet } from "react-helmet";
-import { Button } from "../../components/elements/Button";
 import Alert from "../../components/elements/Alert";
 import Loading from "../../components/elements/Loading";
 
@@ -35,13 +34,14 @@ const EditPengguna = (props) => {
   const [showLoading, setShowLoading] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
   const [alert, setAlert] = useState({
-    status: 200,
     message: "",
-    duration: 3000,
+    error: false,
   });
   const history = useHistory();
 
   const fetchPengguna = async () => {
+    setShowLoading(true);
+
     await api
       .get(`/pengguna/${id}`, {
         headers: {
@@ -53,13 +53,13 @@ const EditPengguna = (props) => {
       })
       .catch((error) => {
         // Unauthorized
-        if (error.response.status === 401) {
+        if (error.response && error.response.status === 401) {
           localStorage.clear();
           return history.push("/login");
         }
-
-        console.log(error);
       });
+
+    setShowLoading(false);
   };
 
   const formValidation = () => {
@@ -150,7 +150,7 @@ const EditPengguna = (props) => {
       })
       .catch((error) => {
         // Unauthorized
-        if (error.response.status === 401) {
+        if (error.response && error.response.status === 401) {
           localStorage.clear();
           return history.push("/login");
         }
@@ -190,23 +190,23 @@ const EditPengguna = (props) => {
         }
       )
       .then((response) => {
-        setAlert((state) => ({ ...state, ...response.data }));
+        setAlert({ message: response.data.message, error: false });
         setShowAlert(true);
       })
       .catch((error) => {
         // Unauthorized
-        if (error.response.status === 401) {
+        if (error.response && error.response.status === 401) {
           localStorage.clear();
           return history.push("/login");
         }
 
-        setAlert((state) => ({
-          ...state,
-          status: 500,
+        setAlert({
           message: "Internal server error!",
-        }));
+          error: true,
+        });
         setShowAlert(true);
       });
+
     setShowLoading(false);
   };
 
@@ -220,6 +220,7 @@ const EditPengguna = (props) => {
       });
       return false;
     }
+
     setShowLoading(true);
 
     await api
@@ -229,23 +230,20 @@ const EditPengguna = (props) => {
         },
       })
       .then((response) => {
-        setAlert((state) => ({ ...state, ...response.data }));
+        setAlert({ message: response.data.message, error: false });
         setShowAlert(true);
       })
       .catch((error) => {
         // Unauthorized
-        if (error.response.status === 401) {
+        if (error.response && error.response.status === 401) {
           localStorage.clear();
           return history.push("/login");
         }
 
-        setAlert((state) => ({
-          ...state,
-          status: 500,
-          message: "Internal server error!",
-        }));
+        setAlert({ message: "Internal server error!", error: true });
         setShowAlert(true);
       });
+    
     setShowLoading(false);
   };
 
@@ -264,32 +262,47 @@ const EditPengguna = (props) => {
       </Helmet>
       {showLoading ? (
         <div className="fixed bg-transparent w-full h-full z-30">
-          <div className="fixed top-1/2 left-1/2 transform -translate-y-1/2 -translate-x-1/2">
+          <div
+            className="fixed top-1/2 left-1/2 text-white transform -translate-y-1/2 -translate-x-1/2 rounded-lg px-8 py-3"
+            style={{ backgroundColor: "#00000097" }}>
             <Loading>
-              <div className="font-montserrat mt-2">loading...</div>
+              <div className="font-montserrat text-gray-300 mt-2">
+                Loading...
+              </div>
             </Loading>
           </div>
         </div>
       ) : null}
       <Alert
         show={showAlert}
-        {...alert}
         afterClose={() => {
           setShowAlert(false);
-          if (alert.status === 200) {
+          if (alert.error === false) {
             history.goBack();
           }
-        }}
-      />
+        }}>
+        {alert.error ? (
+          <div
+            className={`bg-red-300 font-bold text-sm text-white rounded-lg px-8 py-3`}>
+            {alert.message}
+          </div>
+        ) : (
+          <div
+            className={`bg-green-300 font-bold text-sm text-white rounded-lg px-8 py-3`}>
+            {alert.message}
+          </div>
+        )}
+      </Alert>
+
       <div className="grid grid-cols-12 gap-x-4 items-start">
         <Card className="font-montserrat col-span-full md:col-span-6">
           <div className="font-montserrat font-bold text-lg text-gray-500 mb-6">
             Edit Pengguna
           </div>
           <form onSubmit={handleSubmit}>
-            <div className="flex flex-col justify-center text-sm space-y-4">
+            <div className="flex flex-col justify-center space-y-4">
               <img
-                src={`/img/${formData.foto}`}
+                src={`${ENDPOINT}/img/${formData.foto}`}
                 alt="User Profile"
                 className="ring-2 ring-offset-4 ring-indigo-400 shadow-lg rounded-full w-20 mx-auto"
               />
@@ -328,7 +341,7 @@ const EditPengguna = (props) => {
                 <div
                   className={`${
                     formDataError.nama ? "" : "hidden"
-                  } md:col-start-5 col-span-full text-xs text-red-400`}>
+                  } md:col-start-5 col-span-full text-sm text-red-400`}>
                   {`Nama pengguna ${formDataError.nama}`}
                 </div>
               </div>
@@ -347,7 +360,7 @@ const EditPengguna = (props) => {
                 <div
                   className={`${
                     formDataError.email ? "" : "hidden"
-                  } md:col-start-5 col-span-full text-xs text-red-400`}>
+                  } md:col-start-5 col-span-full text-sm text-red-400`}>
                   {`Email ${formDataError.email}`}
                 </div>
               </div>
@@ -366,7 +379,7 @@ const EditPengguna = (props) => {
                 <div
                   className={`${
                     formDataError.no_telp ? "" : "hidden"
-                  } md:col-start-5 col-span-full text-xs text-red-400`}>
+                  } md:col-start-5 col-span-full text-sm text-red-400`}>
                   {`No telp ${formDataError.no_telp}`}
                 </div>
               </div>
@@ -375,7 +388,7 @@ const EditPengguna = (props) => {
                   Role <span className="text-red-400">*</span>
                 </div>
                 <select
-                  className="col-span-full md:col-span-8 border border-gray-300 rounded-md focus:ring focus:ring-indigo-200 focus:outline-none p-2"
+                  className="col-span-full md:col-span-8 bg-white border border-gray-300 rounded-md focus:ring focus:ring-indigo-200 focus:outline-none p-2"
                   value={formData.role}
                   name="role"
                   onChange={handleChange}>
@@ -388,7 +401,7 @@ const EditPengguna = (props) => {
                 <div
                   className={`${
                     formDataError.role ? "" : "hidden"
-                  } md:col-start-5 col-span-full text-xs text-red-400`}>
+                  } md:col-start-5 col-span-full text-sm text-red-400`}>
                   {`Role ${formDataError.role}`}
                 </div>
               </div>
@@ -397,7 +410,7 @@ const EditPengguna = (props) => {
                   Status <span className="text-red-400">*</span>
                 </div>
                 <select
-                  className="col-span-full md:col-span-8 border border-gray-300 rounded-md focus:ring focus:ring-indigo-200 focus:outline-none p-2"
+                  className="col-span-full md:col-span-8 bg-white border border-gray-300 rounded-md focus:ring focus:ring-indigo-200 focus:outline-none p-2"
                   value={formData.status}
                   name="status"
                   onChange={handleChange}>
@@ -410,22 +423,23 @@ const EditPengguna = (props) => {
                 <div
                   className={`${
                     formDataError.status ? "" : "hidden"
-                  } md:col-start-5 col-span-full text-xs text-red-400`}>
+                  } md:col-start-5 col-span-full text-sm text-red-400`}>
                   {`Status ${formDataError.status}`}
                 </div>
               </div>
             </div>
-            <div className="flex justify-end mt-6">
-              <Button className="text-sm">Simpan</Button>
-            </div>
+            <button className="bg-indigo-500 hover:bg-indigo-400 text-indigo-100 rounded focus:ring focus:ring-indigo-100 focus:outline-none w-full px-4 py-1.5 mt-6">
+              Simpan
+            </button>
           </form>
         </Card>
+
         <Card className="font-montserrat col-span-full md:col-span-6">
           <div className="font-montserrat font-bold text-lg text-gray-500 mb-6">
             Ubah Password
           </div>
           <form onSubmit={handleSubmitUbahPassword}>
-            <div className="flex flex-col justify-center text-sm space-y-4">
+            <div className="flex flex-col justify-center space-y-4">
               <div className="grid grid-cols-12 items-center gap-x-4 gap-y-1">
                 <div className="col-span-full md:col-span-4">
                   Password Baru <span className="text-red-400">*</span>
@@ -453,14 +467,14 @@ const EditPengguna = (props) => {
                 <div
                   className={`${
                     formDataUbahPasswordError.password ? "" : "hidden"
-                  } md:col-start-5 col-span-full text-xs text-red-400`}>
+                  } md:col-start-5 col-span-full text-sm text-red-400`}>
                   {`Password baru ${formDataUbahPasswordError.password}`}
                 </div>
               </div>
             </div>
-            <div className="flex justify-end mt-6">
-              <Button className="text-sm">Simpan</Button>
-            </div>
+            <button className="bg-indigo-500 hover:bg-indigo-400 text-indigo-100 rounded focus:ring focus:ring-indigo-100 focus:outline-none w-full px-4 py-1.5 mt-6">
+              Simpan
+            </button>
           </form>
         </Card>
       </div>

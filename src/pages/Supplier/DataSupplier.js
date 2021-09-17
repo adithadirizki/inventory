@@ -56,10 +56,8 @@ const DataSupplier = () => {
   const [showAlert, setShowAlert] = useState(false);
   const [showLoading, setShowLoading] = useState(false);
   const [alert, setAlert] = useState({
-    status: 200,
     message: "",
     error: false,
-    duration: 3000,
   });
   const [formDataDeleteSupplier, setFormDataDeleteSupplier] = useState(
     initialStateFormDataDeleteSupplier
@@ -67,6 +65,8 @@ const DataSupplier = () => {
   const history = useHistory();
 
   const fetchSupplier = async () => {
+    setShowLoading(true);
+
     await api
       .get("/supplier", {
         params: {
@@ -106,24 +106,19 @@ const DataSupplier = () => {
       })
       .catch((error) => {
         // Unauthorized
-        console.log(error);
-        if (error.response.status === 401) {
+        if (error.response && error.response.status === 401) {
           localStorage.clear();
           return history.push("/login");
         }
 
-        setAlert({
-          ...alert,
-          status: 500,
-          message: "Internal server error!",
-          error: true,
-        });
+        setAlert({ message: "Internal server error!", error: true });
         setShowAlert(true);
       });
+
+    setShowLoading(false);
   };
 
   const handleSubmitDeleteSupplier = async () => {
-    setShowAlert(false);
     setShowLoading(true);
 
     await api
@@ -134,27 +129,22 @@ const DataSupplier = () => {
       })
       .then((response) => {
         fetchSupplier();
-        setAlert({ ...alert, ...response.data });
+        setAlert({ message: response.data.message, error: false });
         setShowAlert(true); // show alert
         setShowModalDeleteSupplier(false); // hide modal
         setFormDataDeleteSupplier(initialStateFormDataDeleteSupplier); // reset form
       })
       .catch((error) => {
         // Unauthorized
-        console.log(error);
-        if (error.response.status === 401) {
+        if (error.response && error.response.status === 401) {
           localStorage.clear();
           return history.push("/login");
         }
 
-        setAlert({
-          ...alert,
-          status: 500,
-          message: "Internal server error!",
-          error: true,
-        });
+        setAlert({ message: "Internal server error!", error: true });
         setShowAlert(true);
       });
+    
     setShowLoading(false);
   };
 
@@ -177,16 +167,15 @@ const DataSupplier = () => {
           <td className="border">{value.alamat}</td>
           <td className="border">
             <div className="flex items-center justify-center text-xs space-x-1">
-              <ButtonLight
-                variant="pill"
+              <button
+                className="border border-indigo-300 bg-indigo-50 hover:bg-indigo-200 text-indigo-600 rounded-full focus:ring focus:ring-indigo-100 focus:outline-none px-4 py-1.5"
                 onClick={() => {
                   history.push(`/supplier/${value._id}/edit`);
                 }}>
                 Edit
-              </ButtonLight>
-              <ButtonLight
-                theme="red"
-                variant="pill"
+              </button>
+              <button
+                className="border border-red-300 bg-red-50 hover:bg-red-200 text-red-600 rounded-full focus:ring focus:ring-red-100 focus:outline-none px-4 py-1.5"
                 onClick={() => {
                   setShowModalDeleteSupplier(true);
                   setFormDataDeleteSupplier({
@@ -195,7 +184,7 @@ const DataSupplier = () => {
                   });
                 }}>
                 Hapus
-              </ButtonLight>
+              </button>
             </div>
           </td>
         </Tr>
@@ -214,18 +203,35 @@ const DataSupplier = () => {
       </Helmet>
       {showLoading ? (
         <div className="fixed bg-transparent w-full h-full z-30">
-          <div className="fixed top-1/2 left-1/2 transform -translate-y-1/2 -translate-x-1/2">
+          <div
+            className="fixed top-1/2 left-1/2 text-white transform -translate-y-1/2 -translate-x-1/2 rounded-lg px-8 py-3"
+            style={{ backgroundColor: "#00000097" }}>
             <Loading>
-              <div className="font-montserrat mt-2">loading...</div>
+              <div className="font-montserrat text-gray-300 mt-2">
+                Loading...
+              </div>
             </Loading>
           </div>
         </div>
       ) : null}
       <Alert
         show={showAlert}
-        {...alert}
-        afterClose={() => setShowAlert(false)}
-      />
+        afterClose={() => {
+          setShowAlert(false);
+        }}>
+        {alert.error ? (
+          <div
+            className={`bg-red-300 font-bold text-sm text-white rounded-lg px-8 py-3`}>
+            {alert.message}
+          </div>
+        ) : (
+          <div
+            className={`bg-green-300 font-bold text-sm text-white rounded-lg px-8 py-3`}>
+            {alert.message}
+          </div>
+        )}
+      </Alert>
+
       <Modal
         show={showModalDeleteSupplier}
         afterClose={() => setShowModalDeleteSupplier(false)}>
@@ -249,43 +255,43 @@ const DataSupplier = () => {
             <strong>{formDataDeleteSupplier.nama_supplier}</strong>?
           </div>
           <div className="flex justify-between text-sm space-x-2 mt-8">
-            <Button
-              theme="red"
+            <button
+              className="bg-red-500 hover:bg-red-400 text-red-100 rounded focus:ring focus:ring-red-100 focus:outline-none px-4 py-1.5"
               onClick={() => {
                 setShowModalDeleteSupplier(false);
               }}>
               Batal
-            </Button>
-            <Button theme="green" onClick={handleSubmitDeleteSupplier}>
+            </button>
+            <button
+              className="bg-green-500 hover:bg-green-400 text-green-100 rounded focus:ring focus:ring-green-100 focus:outline-none px-4 py-1.5"
+              onClick={handleSubmitDeleteSupplier}>
               Ya
-            </Button>
+            </button>
           </div>
         </Card>
       </Modal>
 
-      <Card>
-        <div className="font-montserrat font-bold text-gray-500 text-xl mb-6">
+      <Card className="font-montserrat">
+        <div className="font-bold text-gray-500 text-xl mb-6">
           Data Supplier
         </div>
-        <Button
-          className="mb-4"
+        <button
+          className="bg-indigo-500 hover:bg-indigo-400 text-indigo-100 rounded focus:ring focus:ring-indigo-100 focus:outline-none px-4 py-1.5 mr-2 mb-4"
           onClick={() => {
             history.push("/supplier/tambah");
           }}>
           Tambah Supplier
-        </Button>
+        </button>
 
-        <ButtonLight className="text-sm ml-4">
-          <FontAwesomeIcon icon={faFileAlt} />
-          <CSVLink
-            className="ml-2"
-            headers={headersCSV}
-            data={dataCSV}
-            filename="Data_Supplier_INVENTORY.csv"
-            target="_blank">
-            Export
-          </CSVLink>
-        </ButtonLight>
+        <CSVLink
+          className="border border-indigo-300 bg-indigo-50 hover:bg-indigo-200 text-indigo-600 rounded focus:ring focus:ring-indigo-100 focus:outline-none px-4 py-1.5 ml-2"
+          headers={headersCSV}
+          data={dataCSV}
+          filename="Data_Supplier_INVENTORY.csv"
+          target="_blank">
+          <FontAwesomeIcon icon={faFileAlt} className="mr-2" />
+          Export
+        </CSVLink>
 
         <Datatable
           page={dataTable.page}

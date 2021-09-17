@@ -44,6 +44,7 @@ const Datatable = ({
             className="appearance-none bg-white text-xs text-center border border-gray-300 rounded focus:outline-none focus:ring focus:ring-indigo-100 px-3.5 py-1.5 ml-2"
             value={rowsPerPage}
             onChange={(e) => rowsOnChange(parseInt(e.target.value))}>
+            <option value="2">2</option>
             <option value="10">10</option>
             <option value="25">25</option>
             <option value="50">50</option>
@@ -63,7 +64,7 @@ const Datatable = ({
         </div>
       </div>
 
-      <div className="relative overflow-x-auto z-10 pb-4 my-4">
+      <div className="relative overflow-x-auto pb-4 my-4">
         <table
           className="font-montserrat text-sm border w-full"
           cellPadding="10">

@@ -94,7 +94,7 @@ const IndexPage = () => {
       })
       .catch((error) => {
         // Unauthorized
-        if (error.response.status === 401) {
+        if (error.response && error.response.status === 401) {
           localStorage.clear();
           return history.push("/login");
         }
@@ -111,7 +111,7 @@ const IndexPage = () => {
       })
       .catch((error) => {
         // Unauthorized
-        if (error.response.status === 401) {
+        if (error.response && error.response.status === 401) {
           localStorage.clear();
           return history.push("/login");
         }
@@ -128,7 +128,7 @@ const IndexPage = () => {
       })
       .catch((error) => {
         // Unauthorized
-        if (error.response.status === 401) {
+        if (error.response && error.response.status === 401) {
           localStorage.clear();
           return history.push("/login");
         }
@@ -148,7 +148,7 @@ const IndexPage = () => {
       })
       .catch((error) => {
         // Unauthorized
-        if (error.response.status === 401) {
+        if (error.response && error.response.status === 401) {
           localStorage.clear();
           return history.push("/login");
         }
@@ -165,7 +165,7 @@ const IndexPage = () => {
       })
       .catch((error) => {
         // Unauthorized
-        if (error.response.status === 401) {
+        if (error.response && error.response.status === 401) {
           localStorage.clear();
           return history.push("/login");
         }
@@ -182,7 +182,7 @@ const IndexPage = () => {
       })
       .catch((error) => {
         // Unauthorized
-        if (error.response.status === 401) {
+        if (error.response && error.response.status === 401) {
           localStorage.clear();
           return history.push("/login");
         }
@@ -199,7 +199,7 @@ const IndexPage = () => {
       })
       .catch((error) => {
         // Unauthorized
-        if (error.response.status === 401) {
+        if (error.response && error.response.status === 401) {
           localStorage.clear();
           return history.push("/login");
         }
@@ -216,7 +216,7 @@ const IndexPage = () => {
       })
       .catch((error) => {
         // Unauthorized
-        if (error.response.status === 401) {
+        if (error.response && error.response.status === 401) {
           localStorage.clear();
           return history.push("/login");
         }
@@ -236,7 +236,7 @@ const IndexPage = () => {
       })
       .catch((error) => {
         // Unauthorized
-        if (error.response.status === 401) {
+        if (error.response && error.response.status === 401) {
           localStorage.clear();
           return history.push("/login");
         }
@@ -244,7 +244,9 @@ const IndexPage = () => {
   };
 
   useEffect(() => {
-    fetchCountPengguna();
+    if (localStorage.getItem("role") === "admin") {
+      fetchCountPengguna();
+    }
     fetchCountSupplier();
     fetchCountBarang();
     fetchPemasukan();
@@ -265,16 +267,21 @@ const IndexPage = () => {
           Dashboard
         </div>
 
-        <div className="grid grid-cols-6 md:grid-cols-9 lg:grid-cols-12 gap-4 mb-8">
-          <div className="col-span-3 flex items-center bg-green-500 text-gray-100 rounded-lg shadow space-x-4 px-4 py-3">
-            <FontAwesomeIcon icon={faUser} className="text-gray-100 text-xl" />
-            <div className="flex flex-col items-start">
-              <div className="font-montserrat font-bold">
-                {statistic.pengguna}
+        <div className="grid grid-cols-3 sm:grid-cols-6 md:grid-cols-9 lg:grid-cols-12 gap-4 mb-8">
+          {localStorage.getItem("role") === "admin" ? (
+            <div className="col-span-3 flex items-center bg-green-500 text-gray-100 rounded-lg shadow space-x-4 px-4 py-3">
+              <FontAwesomeIcon
+                icon={faUser}
+                className="text-gray-100 text-xl"
+              />
+              <div className="flex flex-col items-start">
+                <div className="font-montserrat font-bold">
+                  {statistic.pengguna}
+                </div>
+                <div className="text-sm">Pengguna</div>
               </div>
-              <div className="text-sm">Pengguna</div>
             </div>
-          </div>
+          ) : null}
 
           <div className="col-span-3 flex items-center bg-indigo-500 text-gray-100 rounded-lg shadow space-x-4 px-4 py-3">
             <FontAwesomeIcon icon={faTruck} className="text-gray-100 text-xl" />

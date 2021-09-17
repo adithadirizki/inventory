@@ -2,6 +2,7 @@ import { faUser } from "@fortawesome/free-regular-svg-icons";
 import { faPowerOff } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Link } from "react-router-dom";
+import { ENDPOINT } from "../config/api";
 
 const Navbar = () => {
   const Dropdown = () => {
@@ -37,7 +38,7 @@ const Navbar = () => {
 
   return (
     <div
-      className={`sticky top-0 transform bg-gray-600 font-poppins text-gray-200 shadow-lg w-full z-20 p-5`}>
+      className={`sticky top-0 transform bg-gray-600 font-poppins text-gray-200 shadow-lg w-full z-20 p-4`}>
       <div className="relative flex items-center justify-end">
         <div
           className="flex items-center cursor-pointer space-x-2"
@@ -56,7 +57,7 @@ const Navbar = () => {
             {localStorage.getItem("nama")}
           </div>
           <img
-            src={`/img/${localStorage.getItem("foto")}`}
+            src={`${ENDPOINT}/img/${localStorage.getItem("foto")}`}
             alt="User Profile"
             className="shadow-lg rounded-full object-cover w-8 h-8"
           />

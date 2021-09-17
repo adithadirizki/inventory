@@ -1,5 +1,6 @@
 import { faFileAlt } from "@fortawesome/free-regular-svg-icons";
 import {
+  faBars,
   faBox,
   faBoxOpen,
   faChevronRight,
@@ -13,13 +14,39 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
+import styled from "styled-components";
+
+const Scroller = styled.div`
+  &::-webkit-scrollbar {
+    width: 12px;
+    visibility: hidden;
+  }
+  &::-webkit-scrollbar-track {
+    background-color: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: transparent;
+    border-radius: 20px;
+    border: 4px solid transparent;
+    background-clip: content-box;
+  }
+
+  :hover {
+    &::-webkit-scrollbar {
+      visibility: visible;
+    }
+    &::-webkit-scrollbar-thumb {
+      background-color: #e5e7eb;
+    }
+  }
+`;
 
 const useMultipleRef = () => {
   const refs = [];
   return [refs, (e) => e && refs.push(e)];
 };
 
-const Sidebar = ({ onShown = () => {} }) => {
+const Sidebar = ({ show, onShown = () => {} }) => {
   const [dropdownMenu, setDropdownMenu] = useMultipleRef();
   const [sidebarMenu] = useState(() => {
     if (localStorage.getItem("role") === "admin") {
@@ -157,13 +184,30 @@ const Sidebar = ({ onShown = () => {} }) => {
 
   return (
     <>
-      <div className="font-montserrat overflow-y-auto px-2">
-        <div className="font-bold text-white text-xl text-center">
+      <div
+        className={`fixed top-0 bg-gray-600 transform shadow-xl ${
+          show ? "translate-x-0" : "-translate-x-full"
+        } h-full z-30 w-64`}
+        style={{
+          transition: "transform .5s ease-in-out",
+        }}>
+        <div className="absolute top-2 left-full bg-gray-600 p-4">
+          <button
+            onClick={() => {
+              onShown((state) => !state);
+            }}>
+            <FontAwesomeIcon icon={faBars} className="text-gray-200 text-xl" />
+          </button>
+        </div>
+        <div className="font-bold text-white text-xl text-center py-4">
           INVENTORY
         </div>
-        <div className="border-b w-4/5 mx-auto my-4"></div>
-        <div className="text-sm py-4">
-          <ul className="flex flex-col text-gray-200 space-y-2">
+        <div className="border-b w-4/5 mx-auto"></div>
+
+        <Scroller
+          className="font-montserrat overflow-x-hidden px-2"
+          style={{ height: "calc(100% - 60px)", overflowY: "overlay" }}>
+          <ul className="flex flex-col text-gray-200 space-y-2 py-4">
             {sidebarMenu.map((value, index) => {
               if (!value.children) {
                 return (
@@ -226,7 +270,7 @@ const Sidebar = ({ onShown = () => {} }) => {
               }
             })}
           </ul>
-        </div>
+        </Scroller>
       </div>
     </>
   );
