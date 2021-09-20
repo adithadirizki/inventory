@@ -2,6 +2,18 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+## Live Demo
+
+[INVENTORY](https://adithadirizki.github.io/inventory) - UI Front-End.\
+[INVENTORY](https://github.com/adithadirizki/inventory-api) - API Back-End.
+
+*please don't destroy this website or existing data for the convenience of other visitors*
+
+username | password | role
+-------- | -------- | ----
+admin | admin123 | admin
+staffgudang   | staffgudang | staff
+
 ## Available Scripts
 
 In the project directory, you can run:
